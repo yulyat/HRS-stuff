@@ -489,7 +489,7 @@ save "$track_preload_J08", replace
 	** living full time in a nursing home. 
 		tab penblock4 if _intrk08==1
 		
-	
+	tab penblock4 Jw069_1, m
 
 	** See who doesnt get any pension block, or for whom we have no info:
 		cap drop penblockmiss
@@ -509,7 +509,7 @@ save "$track_preload_J08", replace
 		tab onlypen1 onlypen4 if _intrk08 == 1, m
 
 
-		tab comb0608_2 LZ140_1 if _intrk08 == 1 & onlypen1 == 1, m
+		tab comb0608_2 LZ140_1 if _intrk08 == 1 & onlypen == 1, m
 		tab Lage6 onlypen1 if _intrk08 == 1, m
 
 		tab LZ140_1 onlypen1 if Lage>70 & _intrk08 ==1, m

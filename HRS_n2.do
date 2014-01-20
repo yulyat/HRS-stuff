@@ -183,9 +183,9 @@ tab comb0608_2 penblock4 if _intrk08 == 1 & Lage < 71, m
 tab LZ133 working08  if _intrk08 ==1, m
 
 
+tab LZ133 penblock2 if _intrk08 ==1, m
 
-
-
+tab LJ855 if LZ133 == 1 & penblock2 == 1 & _intrk08 ==1, m
 
 ** breakdown LJ393 into A, B, or both: 
 tab LJ393_1, m
@@ -203,7 +203,12 @@ label define pentype
 
 tab LJ335 penblock2 if _intrk08 ==1, m
 
+
+
 ** penblock 2
+tab LJ393_1  /* type of plan 1*/
+tab LJ338_1  /* type of plan 1*/ 
+
 cap drop penblock2type 
 gen penblock2type = 0 if !mi(penblock2)
 replace penblock2type = 1 if inlist(LJ393_1, 3, 12, 16)
@@ -223,10 +228,7 @@ label values penblock2type pentype
 tab penblock2type if _intrk08 == 1, m
 
 
-
 * Penblock1: 
-
-tab LJw082a penblock1 if _intrk08 ==1, m
 
 
 cap drop penblock1type 
@@ -246,8 +248,47 @@ label values penblock1type pentype
 tab penblock1type if _intrk08 == 1, m
 
 tab penblock1type penblock1 if _intrk08 == 1, m
-tab LJw082a if penblock1type == 0 & penblock1 == 1
+
+** what happened to the pension? 
+tab LJw097m1a LJ085 if penblock1 == 1 & _intrk08 == 1, m  
+ /* 37 guys say none, or deny being included in pension plan
+    or refuse, ans so get skipped out of being asked what 
+	happened with the plan. Should we recode them as penblock1 == 0? */
+	
+/* generate  penblock1 result which is set to 1 if pension is still active - i.e. 
+   receiving benefits, left in the plan, transferred to new employer, 0 if rolled over 
+   or converted  */	
+   
+tab LJw097m1a LJ085 if penblock1 == 1 & _intrk08 == 1, m  
+cap drop penblock1result
+egen penblock1result = anymatch(LJw097m1a LJw097m2a LJw097m3a LJw097m4a), v(8 3 5 7)
+replace penblock1result = . if _intrk08 != 1								 
+		
+tab penblock1result penblock1
+
+tab penblock1type penblock1result 
 
 
+** investigating J434 loop --> clarification of pensions reported in LZ140 preload:
 
+**who gets this? anybody who is not missing LZ140:
+tab LZ140_1 if _intrk08 ==1, m
+cap drop pastpenblock
+gen pastpenblock  = !mi(LZ140_1) if _intrk08 == 1
+tab pastpenblock
 
+cap drop pastpenblocktype
+gen pastpenblocktype = 1 if inlist(LZ140_1, 1, 3) 
+replace pastpenblocktype = 2 if inlist(LZ140_1, 2, 4) 
+label values pastpenblocktype pentype
+tab pastpenblocktype
+
+/* past pen block result --> 1 if still expecting to or currently recieving  benefits
+   0 if cashed out, rolled over, lost, or record innacurate */
+
+tab LJ434_1m1 LZ140_1 if _intrk08 ==1, m /* what are you doing with the type A account*/
+tab LJ450_1m1 LZ140_1 if _intrk08 ==1, m /* what are you doing with the type B account  */
+
+egen pastpenblockresult = anymatch(LJ434_1m1 LJ450_1m1), v(1 2)
+replace pastpenblockresult = . if _intrk08 != 1
+tab pastpenblockresult
