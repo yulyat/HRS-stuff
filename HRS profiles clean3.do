@@ -651,15 +651,16 @@ tab LJ335 penblock2 if _intrk08 ==1, m
 ** pension count
 	
 	cap drop pencount*
-	gen pencount1 = (pastpenblock*pastpenblockresult) if _intrk08 == 1
+	gen pencount1 = (pastpenblock*pastpenblockresult == 1) if _intrk08 == 1
 	tab pencount1
-	gen pencount2 = penblock1*penblock1result if _intrk08 == 1
-	replace 
+	gen pencount2 = (penblock1*penblock1result == 1) if _intrk08 == 1
+	
 	tab pencount2
-	gen pencount3 = penblock2 if _intrk08 == 1
+	gen pencount3 = penblock2 == 1 if _intrk08 == 1
 	tab pencount3
-	gen pencount4 = penblock4 if _intrk08 == 1
-
+	gen pencount4 = penblock4 == 1 if _intrk08 == 1
+	
+	egen pencountall = rowtotal(pencount1 pencount2 pencount3 pencount4) if _intrk08 == 1
 	
 	* penblock1result) + penblock2 + penblock4
 	list  pastpenblock pastpenblockresult penblock1  penblock1result penblock2 penblock4 in 1/10, noobs
