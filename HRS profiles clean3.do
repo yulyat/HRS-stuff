@@ -417,6 +417,11 @@ save "$track_preload_J08", replace
 		label define comb0608  11 "UU" 12 "old&NH", add
 		label values comb0608_2 comb0608 
 		tab comb0608_2
+		
+		cap drop oldNH
+		gen oldNH = 1 if (LA019 > 71 & !mi(LA019)) 
+		replace oldNH = 1 if (LA028 == 1 & LA070 == 5)
+		tab oldNH
 	* aside exploration into who is missing from comb variable: 
 		tab comb0608_2 if mi(penblock1) & mi(penblock2) & _intrk06 ==1 & _intrk08 == 1, m
 		tab comb0608_2 if _intrk06 ==1 & _intrk08 == 1, m
@@ -456,7 +461,7 @@ save "$track_preload_J08", replace
   		tab LJ324 if PZ133 == 1  & MZ133 == 5 & _intrk08 == 1, m
 
 ************
-*Jan 17 14**
+*Jan 20 14**
 ************
 
 
@@ -471,7 +476,25 @@ save "$track_preload_J08", replace
   		tab comb0608_2 penblock4 if _intrk08 ==1, m
 
 
-	*4 options for pension blocks:
+	*5 options for pension blocks:
+
+		** breakdown LJ393 into A, B, or both: 
+			tab LJ393_1, m
+
+			#delimit ;
+			label drop pentype;
+			label define pentype 
+			0 "NA"
+			1 "A"
+			2 "B"
+			3 "A&B"
+			8 "DK/RF";
+#delimit cr
+
+
+tab LJ335 penblock2 if _intrk08 ==1, m
+
+
 
 	* 1. report on the job pension in 06. Everybody who was in the sample in o6 and 
 	* 08 has this value - will be 0 if not working in 06
@@ -481,24 +504,115 @@ save "$track_preload_J08", replace
 	* 2. penblock1: asked of most of those those who changed Job status between 06 and 08 
 	* so refers to a job they had previous to 06
 		tab penblock1 if _intrk08 ==1, m
+		
+		
+		
+		cap drop penblock1type 
+		gen penblock1type = 0 if !mi(penblock1)
+		replace penblock1type = 1 if inlist(LJw082a, 3, 12, 16)
+		replace penblock1type = 2 if inlist(LJw082a, 1,2,4,5,6,7,8,9,10,11,13,14)
+		replace penblock1type = 3 if LJw082a == 15
+		replace penblock1type = 8 if inlist(LJw082a, 97, 98, 99)
+		tab penblock1type if _intrk08 == 1, m
+
+
+		replace penblock1type  = 1 if penblock1type == 8 & LJw001a == 1
+		replace penblock1type  = 2 if penblock1type == 8 & LJw001a == 2
+		replace penblock1type  = 3 if penblock1type == 8 & LJw001a == 3
+
+		label values penblock1type pentype
+		tab penblock1type if _intrk08 == 1, m
+
+		tab penblock1type penblock1 if _intrk08 == 1, m
+
+		** what happened to the pension? 
+		tab LJw097m1a LJ085 if penblock1 == 1 & _intrk08 == 1, m  
+		 /* 37 guys say none, or deny being included in pension plan
+  		  	or refuse, ans so get skipped out of being asked what 
+			happened with the plan. Should we recode them as penblock1 == 0? */
+	
+		/* generate  penblock1 result which is set to 1 if pension is still active - i.e. 
+  			receiving benefits, left in the plan, transferred to new employer, 0 if rolled over 
+  			or converted  */	
+   
+		tab LJw097m1a LJ085 if penblock1 == 1 & _intrk08 == 1, m  
+		cap drop penblock1result
+		egen penblock1result = anymatch(LJw097m1a LJw097m2a LJw097m3a LJw097m4a), v(8 3 5 7)
+		replace penblock1result = . if _intrk08 != 1								 
+		
+		tab penblock1type penblock1result if _intrk08 ==1, m
 
 	*3. penblock 2:  asked of everybody who reports working for pay in 08
 		tab penblock2 if _intrk08==1
+		
+		
+		tab LJ393_1  /* type of plan 1*/
+		tab LJ338_1  /* type of plan 1*/ 
+
+		cap drop penblock2type 
+		gen penblock2type = 0 if !mi(penblock2)
+		replace penblock2type = 1 if inlist(LJ393_1, 3, 12, 16)
+		replace penblock2type = 2 if inlist(LJ393_1, 1,2,4,5,6,7,8,9,10,11,13,14)
+		replace penblock2type = 3 if LJ393_1 == 15
+		replace penblock2type = 8 if inlist(LJ393_1, 97, 98, 99)
+		tab penblock2type if _intrk08 == 1, m
+
+
+		tab LJ338_1 if penblock2type > 96 & !mi(penblock2type) 
+
+		replace penblock2type  = 1 if penblock2type == 8 & LJ338_1 == 1
+		replace penblock2type  = 2 if penblock2type == 8 & LJ338_1 == 2
+		replace penblock2type  = 3 if penblock2type == 8 & LJ338_1 == 3
+
+		label values penblock2type pentype
+		tab penblock2type if _intrk08 == 1, m
+
 
 	**4. penblock 4 asked of everybody ( regardless of working status in 08 who is under 70.5 and not
-	** living full time in a nursing home. 
+	** living full time in a nursing home. we don't know anything about result or status. 
 		tab penblock4 if _intrk08==1
+		tab penblock4 Jw069_1, m
 		
-	tab penblock4 Jw069_1, m
+	** 5. Previously reported pension, know type, and asked about status:	
+		tab LZ140_1 if _intrk08 ==1, m
+		cap drop pastpenblock
+		gen pastpenblock  =1 if !mi(LZ140_1) 
+		tab pastpenblock
+		
+		cap drop pastpenblocktype
+		gen pastpenblocktype = 1 if inlist(LZ140_1, 1, 3) 
+		replace pastpenblocktype = 2 if inlist(LZ140_1, 2, 4) 
+		label values pastpenblocktype pentype
+		tab pastpenblocktype
+		
+		
+		/* past pen block result --> 1 if still expecting to or currently recieving  benefits
+  		 0 if cashed out, rolled over, lost, or record innacurate */
 
-	** See who doesnt get any pension block, or for whom we have no info:
+		tab LJ434_1m1 LZ140_1 if _intrk08 ==1, m /* what are you doing with the type A account*/
+		tab LJ450_1m1 LZ140_1 if _intrk08 ==1, m /* what are you doing with the type B account  */
+
+		egen pastpenblockresult = anymatch(LJ434_1m1 LJ450_1m1), v(1 2)
+		replace pastpenblockresult = . if _intrk08 != 1
+		label variable pastpenblockresult pastpenblockresult
+		tab pastpenblockresult
+
+
+
+
+
+		** See who doesnt get any pension block, or for whom we have no info:
 		cap drop penblockmiss
-		egen penblockmiss = rowmiss(LZ133 penblock1 penblock2 penblock4) if _intrk08 == 1
-		tab penblockmiss 
+		egen penblockmiss = rowmiss(pastpenblock LZ133 penblock1 penblock2 penblock4) if _intrk08 == 1
+		tab penblockmiss if _intrk08 == 1
+		
+		cap drop penblockmiss2
+		egen penblockmiss2 = rowmiss(pastpenblock penblock1 penblock2 penblock4) if _intrk08 == 1
+		tab penblockmiss2 if _intrk08 == 1
  	** look at number of pension by status -- makes sense..	
-		tab comb0608_2 penblockmiss if _intrk08 ==1, m
-		tab Lage6 penblockmiss if _intrk08 ==1, m
-		tab gender penblockmiss if _intrk08 ==1, m
+		tab comb0608_2 penblockmiss2 if _intrk08 ==1, m 
+		tab Lage6 penblockmiss2 if _intrk08 ==1, m
+		tab gender penblockmiss2 if _intrk08 ==1, m
 
 	** Just LZ133 (only pension info we have is from the preload) or Just penblock4 (only pension info 
 	**we have is from the penblock4):
@@ -531,3 +645,24 @@ save "$track_preload_J08", replace
 
 
 		tab LZ133 working08  if _intrk08 ==1, m
+
+
+
+** pension count
+	
+	cap drop pencount*
+	gen pencount1 = (pastpenblock*pastpenblockresult) if _intrk08 == 1
+	tab pencount1
+	gen pencount2 = penblock1*penblock1result if _intrk08 == 1
+	replace 
+	tab pencount2
+	gen pencount3 = penblock2 if _intrk08 == 1
+	tab pencount3
+	gen pencount4 = penblock4 if _intrk08 == 1
+
+	
+	* penblock1result) + penblock2 + penblock4
+	list  pastpenblock pastpenblockresult penblock1  penblock1result penblock2 penblock4 in 1/10, noobs
+	list  pastpenblock pastpenblockresult penblock1  penblock1result penblock2 penblock4 if !mi(pencount), noobs
+
+		
