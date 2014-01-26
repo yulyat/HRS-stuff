@@ -475,7 +475,7 @@ save "$track_preload_J08", replace
 		* who gets penblock 4? under 70.5 and not permanently in a nursing home
   		tab comb0608_2 penblock4 if _intrk08 ==1, m
 
-
+		tab comb0608_2 if oldNH != 1
 	*5 options for pension blocks:
 
 		** breakdown LJ393 into A, B, or both: 

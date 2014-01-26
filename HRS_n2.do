@@ -306,9 +306,10 @@ tab pastpenblockresult
 tab  LZ140_1 pastpenblockresult
 
 
-tab comb0608_2 pastpenblock if _intrk08 == 1, m col
-tab comb0608_2 pastpenblock if _intrk08 == 1 & oldNH != 1, m col 
-tab comb0608_2 LZ133 if _intrk08 == 1 & oldNH != 1, m col
-tab comb0608_2 penblock1 if _intrk08 == 1 & oldNH != 1, m col
-tab comb0608_2 penblock2 if _intrk08 == 1 & oldNH != 1, m col
-tab comb0608_2 penblock4 if _intrk08 == 1 & oldNH != 1, m col
+tab comb0608_2 if _intrk08 == 1, m col
+tab comb0608_2 if _intrk08 == 1 & oldNH != 1, m 
+tab comb0608_2 pastpenblock if _intrk08 == 1, m col 
+tab comb0608_2 LZ133 if _intrk08 == 1, m col
+tab comb0608_2 penblock1 if _intrk08 == 1, m col
+tab comb0608_2 penblock2 if _intrk08 == 1, m col
+tab comb0608_2 penblock4 if _intrk08 == 1, m col
