@@ -1,6 +1,45 @@
-** counting pensions:
 
-#delimit ;
+
+
+****************************************************************************
+** This do file generates variables needed to count pension plans in J file 
+** using merged data file called $track_preload_J08
+************************************************************************
+gen comb0608=.
+		replace comb0608=1 if working06==1 & selfelse06==2 & working08==1 & selfelse08==2
+		replace comb0608=2 if working06==1 & selfelse06==2 & working08==1 & selfelse08==1
+		replace comb0608=3 if working06==1 & selfelse06==2 & working08==5
+		replace comb0608=4 if working06==1 & selfelse06==1 & working08==1 & selfelse08==2
+		replace comb0608=5 if working06==1 & selfelse06==1 & working08==1 & selfelse08==1 & (LJ045==1 | LJ045==3)
+		replace comb0608=6 if working06==1 & selfelse06==1 & working08==1 & selfelse08==1 & (LJ045==4 | LJ045==5)
+		replace comb0608=7 if working06==1 & selfelse06==1 & working08==5
+		replace comb0608=8 if working06==5 & working08==1 & selfelse08==2
+		replace comb0608=9 if working06==5 & working08==1 & selfelse08==1
+		replace comb0608=10 if working06==5 & working08==5
+
+		label define comb0608 1 "06s 08s" 2 "06s 08e" 3 "06s 08u" 4 "06e 08s" 5 "06e 08eo" 6 "06e 08en" 7 "06e 08u" 8 "06u 08s" 9 "06u 08e" 10 "06u 08u"
+
+		label values comb0608 comb0608
+
+		tab comb0608
+
+cap drop comb0608_2
+		gen comb0608_2 = comb0608
+		replace comb0608_2 = 11 if LJ705 == 1
+		replace comb0608_2 = 12 if LA019 > 71 & !mi(LA019)
+		replace comb0608_2 = 12 if (LA028 == 1 & LA070 == 5)
+		label define comb0608  11 "UU" 12 "old&NH", add
+		label values comb0608_2 comb0608 
+		tab comb0608_2
+		
+		cap drop oldNH
+		gen oldNH = 1 if (LA019 > 71 & !mi(LA019)) 
+		replace oldNH = 1 if (LA028 == 1 & LA070 == 5)
+		tab oldNH
+
+
+
+			#delimit ;
 			label drop pentype;
 			label define pentype 
 			0 "NA"
@@ -16,42 +55,32 @@
 **past pen block
 *********
 
-		tab pastpenblock if _intrk08 == 1, m
+		tab LZ140_1 if _intrk08 ==1, m
+		cap drop pastpenblock
+		gen pastpenblock = 1 if !mi(LZ140_1) 
 
-	* how many pensions per person
+	* how many pensions per person 
 
-	tab LZ140_1
+		cap drop penblkpst_total
 
+		egen penblkpst_total = anycount(LZ140*), v(1 2 3 4)
+		replace penblkpst_total = . if _intrk08 != 1
+		la var penblkpst_total "number of past pension blocks per person"
 
-	cap drop penblkpst_total
-
-	egen penblkpst_total = anycount(LZ140*), v(1 2 3 4)
-	replace penblkpst_total = . if _intrk08 != 1
-	la var penblkpst_total "number of past pension blocks per person"
-	tab penblkpst_total if pastpenblock == 1
-
+	* within each round, define pension types and active vs inactive:
 	
-	
-	
-	* generate var  = 1 if pension is not reported cashed out:
-	
-	cap drop pbpst_round*
-	
-	
-	
+		cap drop pbpst_round*
 		forvalues n = 1/4 {
-
 			gen pbpst_round`n' = 1 if inlist(LZ140_`n', 1, 3) 
 			replace pbpst_round`n' = 2 if inlist(LZ140_`n', 2, 4) 
 			tab pbpst_round`n' 
 			}
-			* if cashed out:
+			
+		* if cashed out:
 
 					local i = 1
 					forvalues n = 1/4 {
-
-
-					gen pbpst_round`n'CO = 0 if inlist(pbpst_round`n', 1, 2,3,4)  /* set to 1 if report pension in that round */
+					gen pbpst_round`n'CO = 0 if inlist(pbpst_round`n', 1, 2,3,4)  /* set to 0 if report pension in that round */
 					tempvar pbstat
 					
 					if (`i' == 1)      {
@@ -74,34 +103,35 @@
 
 	
 
-	 ** generate pbpstroundXhat = set to 1 if the pension reported in that round is active
-	forvalues n = 1/4 {
-	gen pbpst_round`n'hat = pbpst_round`n'* pbpst_round`n'CO
-	}
+		 * generate pbpstroundXhat = set to 1 if the pension reported in that round is active
+		
+			forvalues n = 1/4 {
+			gen pbpst_round`n'hat = pbpst_round`n'* pbpst_round`n'CO
+			}
 	
-	** count total number of active pensions
-	egen pbpst_totactive = anycount(pbpst_round*hat),v(1,2)
-	replace pbpst_totactive = . if pastpenblock != 1
-	la var pbpst_totactive "past pension blocks still active"
+		** count total number of active pensions
+			
+			egen pbpst_totactive = anycount(pbpst_round*hat),v(1,2)
+			replace pbpst_totactive = . if pastpenblock != 1
+			la var pbpst_totactive "past pension blocks still active"
 	
 
-** now by type:
+		** now by type:
 
-** update type in each round - 1 - type A; 2 - type B; 11 = type A inactive ; 22 - type B inactive:
+		** update type in each round - 1 - type A; 2 - type B; 11 = type A inactive ; 22 - type B inactive:
 
 
-forvalues n = 1/4 {
-	replace pbpst_round`n' = 11 if pbpst_round`n' == 1 & pbpst_round`n'CO == 0
-	replace pbpst_round`n' = 22 if pbpst_round`n' == 2 & pbpst_round`n'CO == 0
-	}
+			forvalues n = 1/4 {
+			replace pbpst_round`n' = 11 if pbpst_round`n' == 1 & pbpst_round`n'CO == 0
+			replace pbpst_round`n' = 22 if pbpst_round`n' == 2 & pbpst_round`n'CO == 0
+			}
 
 			
-** add up number of each type  = A, B and cashed out:  
+		** add up number of each type  = A, B and cashed out:  
 		
 		cap drop penblkpstA penblkpst2A penblkpstB penblkpst2B penblkpstCO
 		
-		 
-		
+
 		egen penblkpstA = anycount(pbpst_round1 pbpst_round2 pbpst_round3 pbpst_round4), v(1 11)
 		replace penblkpstA = . if pastpenblock != 1
 		la var penblkpstA "Type A pensions, before cashout"
@@ -126,41 +156,33 @@ forvalues n = 1/4 {
 		
 
 
-tab penblkpstA if pastpenblock == 1
-tab penblkpstB if pastpenblock == 1
-
-tab penblkpst2A if pastpenblock == 1 
-tab penblkpst2B if pastpenblock == 1 
-tab penblkpstCO if pastpenblock == 1
 
 
+		***********
+		** block 1
+		***********
+		
+		
+		tab penblock1 if _intrk08 ==1, m
 
-***********
-** block 1
-***********
-tab penblock1 if _intrk08 ==1, m
+		** how many pensions per person
+		tab LJ085 penblock1 if _intrk08 ==1 ,m
+		tab LJ086 penblock1 if LJ085 == 98 & _intrk08 ==1 ,m
 
-** how many pensions per person
-tab LJ085 penblock1 if _intrk08 ==1 ,m
-tab LJ086 penblock1 if LJ085 == 98 & _intrk08 ==1 ,m
-
-* generate penblk1_report = in pension block 1, how many pensions do peopel REPORT having
-cap drop penblk1_report
-gen penblk1_report = LJ085 
-replace penblk1_report = 0 if inlist(LJ085,95, 99)
-replace penblk1_report = 1 if LJ085 == 98 & LJ086 == 1
-replace penblk1_report = 0 if LJ085 == 98 & inlist(LJ086, 8,9)
+		* generate penblk1_report = in pension block 1, how many pensions do peopel REPORT having
+		cap drop penblk1_report
+		gen penblk1_report = LJ085 
+		replace penblk1_report = 0 if inlist(LJ085,95, 99)
+		replace penblk1_report = 1 if LJ085 == 98 & LJ086 == 1
+		replace penblk1_report = 0 if LJ085 == 98 & inlist(LJ086, 8,9)
 
 
 	
 
-**Break down by type. 
+	**Break down by type. 
 
-	** identify which type of pension in each of 4 rounds a,b,c,d: 
-
+		** identify which type of pension in each of 4 rounds a,b,c,d: 
 		
-
-			
 		cap drop pb1_round*
 		set trace off
 		local rounds a b c d 
@@ -273,6 +295,15 @@ replace penblk1_report = 0 if LJ085 == 98 & inlist(LJ086, 8,9)
 ******************
 * pension block 2:
 ******************
+	
+				cap drop penblock2
+
+				gen penblock2 = .  
+				replace penblock2 = 1 if (LJ848 == 1 & LJ849 == 1) 
+				replace penblock2 = 0 if LJ848 == 1 & inlist(LJ849,5,8,9)  
+				replace penblock2 = 1 if LJ324 == 1
+				replace penblock2 = 0 if (inlist(LJ324,5,8,9) | inlist(LJ848,5,8,9))
+	
 	tab penblock2 if _intrk08 == 1, m
 	
 	* how many pensions reported:
@@ -325,6 +356,10 @@ tab penblk2AB
 
 * penblock4:
 * everybody has 1
+
+cap drop penblock4
+		gen penblock4 = 1 if inlist(LJw066, 1, 2) 
+		replace penblock4 = 0 if inlist(LJw066, 5,8,9)
 tab penblock4 
 
 

@@ -4,8 +4,14 @@ set more off
 
 global track_preload_J08 `"/Users/truskinovsky/Documents/Amar/data/track_preload_J08.dta"'
 
+
+
 use $track_preload_J08
 save "$track_preload_J08", replace
+
+
+global track_preload_J08Working `"/Users/truskinovsky/Documents/Amar/data/track_preload_J08Working.dta"'
+save "$track_preload_J08Working", replace
 
 
 								*********************
