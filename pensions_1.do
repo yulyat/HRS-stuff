@@ -96,7 +96,14 @@ save "$track_preload_J08Working", replace
 		replace Lage6 = 6 if Lage >= 70 & Lage < 996
 
 		label values Lage6 age6
+		** create gender label for later:
 
+			#delimit ;
+			cap label define gender 
+			1 "male" 
+			2 "female";
+			#delimit cr
+		label values gender gender
 
 	 	*Comb0608 
 	 	**********
@@ -107,7 +114,7 @@ save "$track_preload_J08Working", replace
  			cap label drop yesno						
  			label define yesno1 						
  			1  "yes"						
- 			5  "no"						
+ 			5  "no";						
  			#delimit cr		
 
 	 	 	*2006 retirement and working status dummies using preload:
@@ -140,10 +147,20 @@ save "$track_preload_J08Working", replace
 			replace jstatus08 = 2 if working08 ==5 & retired08 == 1
 			replace jstatus08 = 3 if working08 ==1 & retired08 == 5
 			replace jstatus08 = 4 if working08 ==5 & retired08 == 5
+			
 
+			#delimit ; 
+			cap label drop jstatus08;
+			label define jstatus08   
+			1 "working, retired"
+          	2 "not working,retired"
+            3 "working, not retired" 
+            4 "not working, not retired"; 
+			#delimit cr
+			label values jstatus08 jstatus08 
 				
 			* LJ021 - self/else employed 2008			
-				
+			cap drop selfelse08	
 			gen selfelse08 =  LJ021
 
 			#delimit ; 
@@ -204,9 +221,9 @@ save "$track_preload_J08Working", replace
 		replace comb0608=8 if working06==5 & working08==1 & selfelse08==2
 		replace comb0608=9 if working06==5 & working08==1 & selfelse08==1
 		replace comb0608=10 if working06==5 & working08==5
-		replace comb0608_2 = 11 if LJ705 == 1
-		replace comb0608_2 = 12 if LA019 > 71 & !mi(LA019)
-		replace comb0608_2 = 12 if (LA028 == 1 & LA070 == 5)
+		replace comb0608=11 if LJ705 == 1
+		replace comb0608=12 if LA019 > 71 & !mi(LA019)
+		replace comb0608=12 if (LA028 == 1 & LA070 == 5)
 
 			#delimit ;
 			cap label drop comb0608;
@@ -222,7 +239,8 @@ save "$track_preload_J08Working", replace
 			9 "06u 08e" 
 			10 "06u 08u"
 			11 "UU" 
-			12 "old&NH"
+			12 "old&NH";
+			#delimit cr
 			label values comb0608 comb0608
 	
 	

@@ -8,7 +8,7 @@
 global track_preload_J08 `"/Users/truskinovsky/Documents/Amar/data/track_preload_J08.dta"'
 global track_preload_J08Working `"/Users/truskinovsky/Documents/Amar/data/track_preload_J08Working.dta"'
 
-global dofile_repository `"/Users/truskinovsky/Documents/ADDhealth HRS/HRS stuff "'
+global dofile_repository `"/Users/truskinovsky/Documents/ADDhealth_HRS/HRS_stuff"'
 
 clear 
 use $track_preload_J08
@@ -50,106 +50,112 @@ do "$dofile_repository/pensions_2.do"
   /*variables used in this file
   */
 
-	local blocks pen1 pen2 pen3 pen4
+	
+* asked not asked by status: each column is percent of obs in that status that are 
+* asked that penblock	
+local blocks pen1 pen2 pen3 pen4
 
 	foreach var of local blocks {
-		di "cross tab of "
-		tab combo0608 `var' if _intrk08 ==1, m
+		qui estpost tab comb0608 `var'indicator if _intrk08 == 1, m
+		esttab, cell(rowpct(fmt(2))) noobs unstack  varlabels(`e(labels)') ///
+		eqlabels(, lhs("0608 Status")) ///
+		title(Crosstab of Status with `var')
 	}
 
-	tab pastpenblock if _intrk08 == 1, m
+** number of pensionblocks asked per person:
+di" number of pension blocks asked per person" 
+tab numpenblocks if _intrk08==1, m
+
+local covars comb0608 jstatus08 Lage6 gender Lfinr
+foreach var of local covars{
+	tab `var' numpenblocks if _intrk08 ==1, m
+}
+
+** everythingn that follows is just fo those who are asked:
+* 	pen1 (past pension block from preload)
+** of those who have pen1, how many pensions do they report?
+	di"of those who have pen1, how many pensions do they describe?"
+	 tab pen1_total if pen1indicator == 1 & _intrk08 ==1, m
+
+
+	 local types A B
+	 foreach n of local types {
+	 di"how many `n' total"
+	 tab pen1`n'_total if _intrk08 == 1, m
+	 di"how many `n' active"
+	 tab pen1`n'_active if _intrk08 == 1, m
+
+	 }
+	 
+
+* pen2( previously penblock1):
+	di"of those who have pen2, how many pensions do they report?"
+	tab pen2_report if pen2indicator == 1 & _intrk08 ==1, m
 	
+	di"of those who have pen2, how many pensions do they describe?"
+	tab pen2_total if pen2indicator == 1 & _intrk08 ==1, m
 	
-	*2. how many pensions listed per person, total and active:
-	tab pbpst_total
-	tab pbpst_totactive
+
+
+
+	 local types A B AB DK
+	 foreach n of local types {
+	 di"how many `n' total"
+	 cap tab pen2`n'_total if _intrk08 == 1, m
+	 di"how many `n' active"
+	 tab pen2`n'_active if _intrk08 == 1, m
+
+	 }
+	 
+* pen3: 
+
+	di"of those who have pen3, how many pensions do they report?"
+	tab pen3_report if pen3indicator == 1 & _intrk08 ==1, m
 	
-	*3: of those listed, how many are type A, B, overall and still active:
-	tab penblkpstA if pastpenblock == 1
-	tab penblkpstB if pastpenblock == 1
+	di"of those who have pen3, how many pensions do they describe?"
+	tab pen3_total if pen3indicator == 1 & _intrk08 ==1, m
+	
 
-	tab penblkpst2A if pastpenblock == 1 
-	tab penblkpst2B if pastpenblock == 1 
-	tab penblkpstCO if pastpenblock == 1
 
-  
-**  pension block 1 particulars:
+
+	 local types A B AB DK
+	 foreach n of local types {
+	 di"how many `n' total"
+	 cap tab pen3`n'_total if _intrk08 == 1, m
+	 
+	 }
+
+
+* pen4:
  
-  *	1. number of people who get pension block 1/ report having this type of pension block
-  		
-  		tab penblock1 if _intrk08 ==1, m
-  		
- *	2. how many pensions people say they have
- 		 
- 		tab penblk1_report if penblock1 == 1, m
+ di"who has ppensions block 4"
 
- *	3. how many pensions people list - total and active:
+ tab pen4 if _intrk08 == 1, m
+
+***
  
- tab penblk1total
- tab penblk1totactive
- 
+*Totals across block by type:
 
+ 		local types pensiontotal  pensiontotalA  pensiontotalB pensiontotal4
+ 		foreach n of local types {
+ 			di "`n' "
+ 			tab `n' if _intrk08 ==1, m
+  			}
 
- *	4. of those listed, how many type a, type b, both, total and still active:
-  
- 		
-		local types A B AB 
-		
-		foreach n of local types {
-			di "number of pension types `n' per person"
-			tab penblk1`n' if penblock1 == 1
-			di "number of active  pension types `n' per person"
-			tab penblk12`n' if penblock1 == 1
-			}
-			
+	local types pensiontotactive  pensionactiveA  pensionactiveB
+ 		foreach n of local types {
+ 			di "`n' "
+ 			tab `n' if _intrk08 ==1, m
+  			}
+  			
+  			
+		local types pensiontotactive  pensionactiveA  pensionactiveB pensiontotal4
+ 		local covars comb0608 jstatus08 Lage6 gender Lfinr
+ 		foreach n of local types {
+ 			foreach var of local covars{
+ 				 di "how many active `n' types by `var'"
+ 				 tab `var' `n' if _intrk08 ==1, m 
 
-**  pension block 2 particulars:
- 
-  *	1. number of people who get pension block 2 report having this type of pension block
-  		
-  		tab penblock2 if _intrk08 ==1, m
-  		
- *	2. how many pensions people say they have
- 		 
- 		tab penblk2_report if penblock2 == 1, m
-
- *	3. how many pensions people list - total and active:
- 
- tab penblk2total
- 
-
-
- *	4. of those listed, how many type a, type b, both:
-  
- 		
-		local types A B AB 
-		
-		foreach n of local types {
-			di "number of pension types `n' per person"
-			tab penblk2`n' if penblock2 == 1
-			
-			}
-
-
-** total number of pensions across all blocks, total reported and total active:
-
-tab pensiontotal
-
-tab pensiontotactive		
-
-tab pensiontotalA
-tab pensiontotal2A
- 
-tab pensiontotalB
-tab pensiontotal2B
-
-tab pensiontotal if oldNH != 1
-
-tab pensiontotactive	if oldNH != 1	
-
-tab pensiontotalA if oldNH != 1
-tab pensiontotal2A if oldNH != 1
- 
-tab pensiontotalB if oldNH != 1
-tab pensiontotal2B if oldNH != 1
-
+ 			}
+ 			}
+ 	

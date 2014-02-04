@@ -10,24 +10,13 @@ use "$track_preload_J08Working"
 
 
 
-			#delimit ;
-			label drop pentype;
-			label define pentype 
-			0 "NA"
-			1 "A"
-			2 "B"
-			3 "A&B"
-			4 "cashed out"
-			8 "DK/RF";
-			#delimit cr
-
-
 *********
 **past pen block ( Pen1)
 *********
 
-		cap drop pen1
+		cap drop pen1 pen1indicator
 		gen pen1 = 1 if !mi(LZ140_1)  /* dummy indicates if obs has value for this pension block*/
+		gen pen1indicator = pen1
 
 	* how many pensions per person 
 
@@ -138,6 +127,7 @@ use "$track_preload_J08Working"
 		replace pen2 = 1 if LJ084 == 1
 		replace pen2 = 0 if inlist(LJ084,5,8,9)
 
+		gen pen2indicator = 1 if !mi(pen2)
 
 		* generate pen2_report = in pension block 2, how many pensions do people REPORT having
 		cap drop pen2_report
@@ -278,7 +268,7 @@ use "$track_preload_J08Working"
 		la var pen2AB_active "Type comb active pensions"
 
 		egen pen2DK_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(4 44)
-		replace pen2DK_actve = . if pen2 != 1
+		replace pen2DK_active = . if pen2 != 1
 		la var pen2DK_active "Type unknownactive  pensions"
 		/* note that if type is unknown, this is the end of the pension loop, so count 
 		all unknown pensions as active */
@@ -296,7 +286,7 @@ use "$track_preload_J08Working"
 		replace pen3 = 1 if LJ324 == 1
 		replace pen3 = 0 if (inlist(LJ324,5,8,9) | inlist(LJ848,5,8,9))
 	
-	
+		gen pen3indicator = 1 if !mi(pen3)
 	
 	* how many pensions reported:
 		cap drop pen3_report 
@@ -324,11 +314,11 @@ use "$track_preload_J08Working"
 
 	* number of penson of each type:
 	
-		cap drop pen3A pen3B pen3AB pen3DK
+		cap drop pen3A_total pen3B_total pen3AB_total pen3DK_total
 		local i = 1
 		local type A B AB DK
 		foreach z of local type {
-			egen pen3`z' = anycount(pen3_round*), v(`i')
+			egen pen3`z'_total = anycount(pen3_round*), v(`i')
 			replace pen3`z' = . if pen3 !=1
 			local i = `i'+1
 		}
@@ -349,7 +339,7 @@ use "$track_preload_J08Working"
 		replace pen4 = 0 if LJw066 == 5
 
 
-
+		gen pen4indicator = 1 if !mi(pen4)
 
 
 
@@ -360,7 +350,6 @@ use "$track_preload_J08Working"
 
 		cap drop pensiontotal 
 		egen pensiontotal = rowtotal(pen1_total pen2_total pen3_total pen4)
-		replace pensiontotal = . if _intrk08 != 1
 		la var pensiontotal "number of pensions across blocks"
 		
 		
@@ -376,29 +365,36 @@ use "$track_preload_J08Working"
 		la var pensiontotalA "number of A type pensions across blocks"
 	
 		
-		cap drop pensiontotal2A
-		egen pensiontotal2A = rowtotal(pen1A_active pen2A_active pen3A_total)
-		replace pensiontotal2A = . if _intrk08 != 1
-		la var pensiontotal2A "number of active A type pensions across blocks"
+		cap drop pensionactiveA
+		egen pensionactiveA = rowtotal(pen1A_active pen2A_active pen3A_total)
+		replace pensionactiveA = . if _intrk08 != 1
+		la var pensionactiveA "number of active A type pensions across blocks"
 		***
 		
 		cap drop pensiontotalB
-		egen pensiontotalB = rowtotal(pen1B pen2B pen3B)
+		egen pensiontotalB = rowtotal(pen1B_total pen2B_total pen3B_total)
 		replace pensiontotalB = . if _intrk08 != 1
 		la var pensiontotalB "number of B type pensions across blocks"
 		 
 
-		cap drop pensiontotal2B
-		egen pensiontotal2B = rowtotal(pen12B pen22B pen3B)
-		replace pensiontotal2B = . if _intrk08 != 1
-		la var pensiontotal2B "number of active B type pensions across blocks"
+		cap drop pensionactiveB
+		egen pensionactiveB = rowtotal(pen1B_active pen2B_active pen3B_total)
+		replace pensionactiveB = . if _intrk08 != 1
+		la var pensionactiveB "number of active B type pensions across blocks"
 		
 		/* combination or unknown type pensions) */
 
 		cap drop pensiontotal4
-		egen pensiontotal4 = rowtotal(pen12B pen22B pen3AB pen3DK pen4)
+		egen pensiontotal4 = rowtotal(pen2AB_total pen2DK_total pen3AB_total pen3DK_total pen4)
 		replace pensiontotal4 = . if _intrk08 != 1
 		la var pensiontotal4 "number of unknown or combo type pensions across blocks"
+
+* how many pension blocks :
+
+cap drop numpenblocks 
+egen numpenblocks = rowtotal(pen1indicator pen2indicator pen3indicator pen4indicator), m
+la var numpenblocks "number of pensions blocks asked"		
+
 		
 save "$track_preload_J08Working", replace
 
