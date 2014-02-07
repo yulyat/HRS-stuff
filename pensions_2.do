@@ -18,6 +18,7 @@ use "$track_preload_J08Working"
 		gen pen1 = 1 if !mi(LZ140_1)  /* dummy indicates if obs has value for this pension block*/
 		gen pen1indicator = pen1
 
+
 	* how many pensions per person 
 
 		cap drop pen1_total
@@ -38,7 +39,7 @@ use "$track_preload_J08Working"
 
 		local i = 1
 		forvalues n = 1/4 {
-			gen pen1_round`n'act = 0 if inlist(pen1_round`n', 1, 2,3,4)  /* set to 0 if report pension in that round */
+			gen pen1_round`n'act = 0 if inlist(pen1_round`n', 1, 2)  /* set to 0 if report pension in that round */
 			tempvar pbstat
 					
 			if (`i' == 1)  {
@@ -125,7 +126,10 @@ use "$track_preload_J08Working"
 		cap drop pen2
 		gen pen2 = .
 		replace pen2 = 1 if LJ084 == 1
-		replace pen2 = 0 if inlist(LJ084,5,8,9)
+		replace pen2 = 0 if inlist(LJ084,5)
+		replace pen2 = -1 if inlist(LJ084,8,9)
+
+		/* recode don't don't knows as - 1..? */
 
 		gen pen2indicator = 1 if !mi(pen2)
 
@@ -149,20 +153,20 @@ use "$track_preload_J08Working"
 
 		foreach n of local rounds {
 
-			gen pen2_round`n' = 0 if pen2 == 1
+			gen pen2_round`n' = 0 if (pen2 == 1 | pen2 == -1)
 			replace pen2_round`n' = 1 if inlist(LJw082`n', 3, 12, 16)
 			replace pen2_round`n' = 2 if inlist(LJw082`n', 1,2,4,5,6,7,8,9,10,11,13,14)
 			replace pen2_round`n' = 3 if LJw082`n' == 15
-			replace pen2_round`n' = 4 if inlist(LJw082`n', 95,97,98,99)
+			replace pen2_round`n' = 4 if inlist(LJw082`n',97,98,99)
+			replace pen2_round`n' = 0 if inlist(LJw082`n', 95)
 
 
-			replace pen2_round`n'  = 1 if pen2_round`n' == 8 & LJw001`n' == 1
-			replace pen2_round`n'  = 2 if pen2_round`n' == 8 & LJw001`n' == 2
-			replace pen2_round`n'  = 3 if pen2_round`n' == 8 & LJw001`n' == 3
-			replace pen2_round`n'  = 4 if pen2_round`n' == 8 & inlist(LJw001`n',8,9)
+			replace pen2_round`n'  = 1 if pen2_round`n' == 4 & LJw001`n' == 1
+			replace pen2_round`n'  = 2 if pen2_round`n' == 4 & LJw001`n' == 2
+			replace pen2_round`n'  = 3 if pen2_round`n' == 4 & LJw001`n' == 3
+			replace pen2_round`n'  = 4 if pen2_round`n' == 4 & inlist(LJw001`n',8,9)
 
 			}
-		
 		
 	** identify var set to 1 if the pension in that round is still active		
 		
@@ -216,7 +220,7 @@ use "$track_preload_J08Working"
 		 11 - type A cashed out 
 		 22 - type B casehd out 
 		 33- Both types cashed out
-		 44 - dk & refused & but cashed out
+		 44 - dk & refused & but cashed out ( should be empty)
 
 	*/
 	
@@ -267,7 +271,7 @@ use "$track_preload_J08Working"
 		replace pen2AB_active = . if pen2 != 1
 		la var pen2AB_active "Type comb active pensions"
 
-		egen pen2DK_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(4 44)
+		egen pen2DK_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(4)
 		replace pen2DK_active = . if pen2 != 1
 		la var pen2DK_active "Type unknownactive  pensions"
 		/* note that if type is unknown, this is the end of the pension loop, so count 
@@ -284,7 +288,7 @@ use "$track_preload_J08Working"
 		replace pen3 = 1 if (LJ848 == 1 & LJ849 == 1) 
 		replace pen3 = 0 if LJ848 == 1 & inlist(LJ849,5,8,9)  
 		replace pen3 = 1 if LJ324 == 1
-		replace pen3 = 0 if (inlist(LJ324,5,8,9) | inlist(LJ848,5,8,9))
+		replace pen3 = -1 if (inlist(LJ324,5,8,9) | inlist(LJ848,5,8,9))
 	
 		gen pen3indicator = 1 if !mi(pen3)
 	
@@ -300,12 +304,22 @@ use "$track_preload_J08Working"
 
 
 		forvalues n = 1/4 {
-			gen pen3_round`n' = 0 if pen3 == 1
+			gen pen3_round`n' = 0 if (pen3 == 1 | pen3 == -1)
 			replace pen3_round`n' = 1 if inlist(LJ393_`n', 3, 12, 16)
 			replace pen3_round`n' = 2 if inlist(LJ393_`n', 1,2,4,5,6,7,8,9,10,11,13,14)
 			replace pen3_round`n' = 3 if LJ393_`n' == 15
 			replace pen3_round`n' = 4 if inlist(LJ393_`n',95, 97, 98, 99)
+			replace pen3_round`n' = 0 if inlist(LJ393_`n', 95)
+
+
+			replace pen3_round`n'  = 1 if pen3_round`n' == 4 & LJ338_`n' == 1
+			replace pen3_round`n'  = 2 if pen3_round`n' == 4 & LJ338_`n' == 2
+			replace pen3_round`n'  = 3 if pen3_round`n' == 4 & LJ338_`n' == 3
+			replace pen3_round`n'  = 4 if pen3_round`n' == 4 & inlist(LJ338_`n',8,9)
+
 		}
+
+		** update using LJ338
 
 	* add up number of pensions per person :
 		cap drop pen3_total
@@ -335,11 +349,33 @@ use "$track_preload_J08Working"
 * **********
 
 		cap drop pen4
-		gen pen4 = 1 if inlist(LJw066, 1, 2, 8, 9) 
+		gen pen4 = 1 if inlist(LJw066, 1) 
+		replace pen4 = 2 if inlist(LJw066, 2) 
+		replace pen4 = -1 if inlist(LJw066,8, 9) 
+
 		replace pen4 = 0 if LJw066 == 5
-
-
 		gen pen4indicator = 1 if !mi(pen4)
+
+
+* need to generate pen4_total to account for -1 (put it in don't know category)
+		cap drop pen4_total
+		gen pen4_total = pen4
+		replace pen4_total = 1 if pen4 == -1
+
+* label all pen1-4 with value label:
+
+		#delimit ;
+		label define penlabel
+		2 "<1"
+		-1 "dk";
+		#delimit cr 
+
+		forvalues n = 1/4 {
+			label variable pen`n' penlabel
+		}
+
+
+
 
 
 
@@ -349,12 +385,12 @@ use "$track_preload_J08Working"
 ** number of pensions per person across blocks:
 
 		cap drop pensiontotal 
-		egen pensiontotal = rowtotal(pen1_total pen2_total pen3_total pen4)
+		egen pensiontotal = rowtotal(pen1_total pen2_total pen3_total pen4_total)
 		la var pensiontotal "number of pensions across blocks"
 		
 		
 		cap drop pensiontotactive
-		egen pensiontotactive = rowtotal(pen1_totactive pen2_totactive pen3_total pen4)
+		egen pensiontotactive = rowtotal(pen1_totactive pen2_totactive pen3_total pen4_total)
 		replace pensiontotactive = . if _intrk08 != 1
 		la var pensiontotactive "number of  active pensions across blocks"
 		
@@ -385,7 +421,7 @@ use "$track_preload_J08Working"
 		/* combination or unknown type pensions) */
 
 		cap drop pensiontotal4
-		egen pensiontotal4 = rowtotal(pen2AB_total pen2DK_total pen3AB_total pen3DK_total pen4)
+		egen pensiontotal4 = rowtotal(pen2AB_total pen2DK_total pen3AB_total pen3DK_total pen4_total)
 		replace pensiontotal4 = . if _intrk08 != 1
 		la var pensiontotal4 "number of unknown or combo type pensions across blocks"
 
@@ -393,6 +429,10 @@ use "$track_preload_J08Working"
 
 cap drop numpenblocks 
 egen numpenblocks = rowtotal(pen1indicator pen2indicator pen3indicator pen4indicator), m
+replace numpenblocks = 0 if mi(numpenblocks) & _intrk08 == 1
+/* replace with 0 if not asked any pension blocks*/
+
+
 la var numpenblocks "number of pensions blocks asked"		
 
 		

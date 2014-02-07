@@ -14,7 +14,7 @@ clear
 use $track_preload_J08
 save "$track_preload_J08Working", replace
 
-
+set more off 
 
 /* 1st dofile Pensions1.do: create basic variables necessary for analysis of pensions:
     _intrk08 - variable identifies which observations participated in 2008

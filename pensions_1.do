@@ -76,8 +76,8 @@ save "$track_preload_J08Working", replace
 
 
 			#delimit ;
-
-			cap label define age6 
+			cap label drop age6; 
+			label define age6 
 			1 "Below 50" 
 			2 "50 to 54"
 			3 "55 to 59"
@@ -99,7 +99,8 @@ save "$track_preload_J08Working", replace
 		** create gender label for later:
 
 			#delimit ;
-			cap label define gender 
+			cap label drop gender;
+			label define gender 
 			1 "male" 
 			2 "female";
 			#delimit cr
@@ -110,8 +111,8 @@ save "$track_preload_J08Working", replace
 
 	 	/* first create working and retirement status dummies for each wave, 
 	 	   then combine.  */
-			#delimit 						
- 			cap label drop yesno						
+			#delimit ;						
+ 			cap label drop yesno;						
  			label define yesno1 						
  			1  "yes"						
  			5  "no";						
@@ -222,8 +223,8 @@ save "$track_preload_J08Working", replace
 		replace comb0608=9 if working06==5 & working08==1 & selfelse08==1
 		replace comb0608=10 if working06==5 & working08==5
 		replace comb0608=11 if LJ705 == 1
-		replace comb0608=12 if LA019 > 71 & !mi(LA019)
-		replace comb0608=12 if (LA028 == 1 & LA070 == 5)
+		replace comb0608=12 if LA019 > 71 & !mi(LA019) &comb0608 >9
+		replace comb0608=12 if (LA028 == 1 & LA070 == 5) &comb0608 >9
 
 			#delimit ;
 			cap label drop comb0608;
@@ -245,7 +246,7 @@ save "$track_preload_J08Working", replace
 	
 	
 		
-		* oldNH - dummy set to 1 if respondent is over 70 or a fulltime nursing home resident
+		* oldNH - dummy set to 1 if respondent is over 71 or a fulltime nursing home resident
 		cap drop oldNH
 		gen oldNH = 1 if (LA019 > 71 & !mi(LA019)) 
 		replace oldNH = 1 if (LA028 == 1 & LA070 == 5)
