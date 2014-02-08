@@ -26,6 +26,7 @@ sort hhid Lsubhh _intrk08 Lfinr   /* sort to make sure that hh representative pe
 
 duplicates drop hhid Lsubhh, force
 
+keep hhid Lsubhh pn _intrk08 
 tab _intrk08, m
 
 merge 1:1 hhid Lsubhh using $asset08full, update replace
@@ -34,11 +35,14 @@ merge 1:1 hhid Lsubhh using $asset08full, update replace
 
 save $track_asset08_AH, replace
 
+clear 
+use $track_asset08_AH
 cap drop _merge
 
+/*
 merge 1:1  hhid Lsubhh using $HHcover08, update replace
 save $track_asset08_AH, replace
-
+*/
 clear 
 use $track_asset08_AH
 
@@ -50,7 +54,6 @@ set more off
 * 1. have financial assets: CDS, Bonds, stocks, 
 * how to treat financial assets?
 
-tab _intrk08, m
 local finassets LQ316 LQ330 LQ356
 foreach asset of local havefinassets{
 	tab `asset', m

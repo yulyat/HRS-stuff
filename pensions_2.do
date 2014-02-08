@@ -10,6 +10,7 @@ use "$track_preload_J08Working"
 
 
 
+	
 *********
 **past pen block ( Pen1)
 *********
@@ -35,32 +36,41 @@ use "$track_preload_J08Working"
 			replace pen1_round`n' = 2 if inlist(LZ140_`n', 2, 4) 
 			}
 			
-		* if cashed out:
+		
+
+* if cashed out:
 
 		local i = 1
 		forvalues n = 1/4 {
 			gen pen1_round`n'act = 0 if inlist(pen1_round`n', 1, 2)  /* set to 0 if report pension in that round */
-			tempvar pbstat
+			tempvar pbstatA
+			tempvar pbstatB
 					
 			if (`i' == 1)  {
 					
-				egen `pbstat' = anymatch(LJ434_`n'm1 LJ434_`n'm2 LJ434_`n'm3 LJ434_`n'm4 LJ450_`n'm1 LJ450_`n'm2 LJ450_`n'm3 LJ450_`n'm4 LJ450_`n'm5), v(1 2)
-				}
+				egen `pbstatA' = anymatch(LJ434_`n'm1 LJ434_`n'm2 LJ434_`n'm3 LJ434_`n'm4), v(1 2)		
+				egen `pbstatB' = anymatch(LJ450_`n'm1 LJ450_`n'm2 LJ450_`n'm3 LJ450_`n'm4 LJ450_`n'm5), v(1 7)
+						}
 			else if (`i' == 2) {
-				egen `pbstat' = anymatch(LJ434_`n'm1 LJ434_`n'm2 LJ434_`n'm3  LJ450_`n'm1 LJ450_`n'm2 LJ450_`n'm3 ), v(1 2)
+				egen `pbstatA' = anymatch(LJ434_`n'm1 LJ434_`n'm2 LJ434_`n'm3), v(1 2)
+				egen `pbstatB' = anymatch(LJ450_`n'm1 LJ450_`n'm2 LJ450_`n'm3), v(1 7)
 				}
 			else if `i' == 3   {
-				egen `pbstat' = anymatch(LJ434_`n'm1 LJ434_`n'm2  LJ450_`n'm1 LJ450_`n'm2 LJ450_`n'm3), v(1 2)
+				egen `pbstatA' = anymatch(LJ434_`n'm1 LJ434_`n'm2), v(1 2)
+				egen `pbstatB' = anymatch(LJ450_`n'm1 LJ450_`n'm2 LJ450_`n'm3), v(1 7)
+
 				}
 			else if `i' == 4   {
-				egen `pbstat' = anymatch(LJ434_`n'm1 LJ434_`n'm2  LJ450_`n'm1 LJ450_`n'm2), v(1 2)
+				egen `pbstatA' = anymatch(LJ434_`n'm1 LJ434_`n'm2), v(1 2)
+				egen `pbstatB' = anymatch(LJ450_`n'm1 LJ450_`n'm2), v(1 7)
 				}
 
-			replace pen1_round`n'act = 1 if `pbstat' == 1   /* set to 1 if pension is reported not cashed out ( still active)*/
+			replace pen1_round`n'act = 1 if `pbstatA' == 1   /* set to 1 if pension is reported not cashed out ( still active)*/
+			replace pen1_round`n'act = 1 if `pbstatB' == 1   /* set to 1 if pension is reported not cashed out ( still active)*/
+
 			local i = `i' + 1
 			}
 
-	
 
 		 /* generate pen1roundXhat = set to 1 if the pension reported in that round is active*/
 		
@@ -239,40 +249,40 @@ use "$track_preload_J08Working"
 
 	
 		egen pen2A_total  = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(1 11)
-		replace pen2A_total = . if pen2 != 1
+		replace pen2A_total = . if (pen2 != 1 & pen2 != -1)
 		la var pen2A_total "Type A pensions"
 		
 		egen pen2B_total = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(2 22)
-		replace pen2B_total = . if pen2 != 1
+		replace pen2B_total = . if (pen2 != 1 & pen2 != -1)
 		la var pen2B_total "Type B pensions"
 
 
 		egen pen2AB_total = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(3 33)
-		replace pen2AB_total = . if pen2 != 1
+		replace pen2AB_total = . if (pen2 != 1 & pen2 != -1)
 		la var pen2AB_total "Type comb pensions"
 		tab pen2AB_total
 		
 		egen pen2DK_total = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(4 44)
-		replace pen2DK_total = . if pen2 != 1
+		replace pen2DK_total = . if (pen2 != 1 & pen2 != -1)
 		la var pen2DK_total "Type unknown pensions"
 		tab pen2DK_total
 
 
 		egen pen2A_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(1)
-		replace pen2A_active = . if pen2 != 1
+		replace pen2A_active = . if (pen2 != 1 & pen2 != -1)
 		la var pen2A_active "Type A active pensions"
 		
 		egen pen2B_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(2)
-		replace pen2B_active = . if pen2 != 1
+		replace pen2B_active = . if (pen2 != 1 & pen2 != -1)
 		la var pen2B_active "Type B active pensions"
 
 
 		egen pen2AB_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(3)
-		replace pen2AB_active = . if pen2 != 1
+		replace pen2AB_active = . if (pen2 != 1 & pen2 != -1)
 		la var pen2AB_active "Type comb active pensions"
 
 		egen pen2DK_active = anycount(pen2_rounda pen2_roundb pen2_roundc pen2_roundd), v(4)
-		replace pen2DK_active = . if pen2 != 1
+		replace pen2DK_active = . if (pen2 != 1 & pen2 != -1)
 		la var pen2DK_active "Type unknownactive  pensions"
 		/* note that if type is unknown, this is the end of the pension loop, so count 
 		all unknown pensions as active */
@@ -294,7 +304,7 @@ use "$track_preload_J08Working"
 	
 	* how many pensions reported:
 		cap drop pen3_report 
-		gen pen3_report = LJ335 if pen3== 1
+		gen pen3_report = LJ335 if pen3== 1 
 		replace pen3_report = 0 if inlist(LJ335, 98,99)
 		
 
@@ -333,7 +343,7 @@ use "$track_preload_J08Working"
 		local type A B AB DK
 		foreach z of local type {
 			egen pen3`z'_total = anycount(pen3_round*), v(`i')
-			replace pen3`z' = . if pen3 !=1
+			replace pen3`z' = . if pen3 !=1 & pen3 != -1
 			local i = `i'+1
 		}
 
