@@ -3,10 +3,9 @@ use $track_preload_J08Working
 
 
 
-
 ** pensions reported converted to annuities from pen1
 * annuJ1 = pension mentioned in pen1 that was reported converted to an annuity:
-	
+	cap drop __00000*
 	cap drop annuJ1_round*
 
 	forvalues n = 1/4 {
@@ -36,6 +35,7 @@ use $track_preload_J08Working
 			tab annuJ1_round`n'
 			}
 
+			cap drop __00000*
 
 ** pensions coverted to annuities from pen2:
 * annuJ2 = pension mentioned in pen2 converted into :
@@ -48,7 +48,7 @@ pensions in each round that have been converted to annuities ( dont care what ty
 
 		local rounds a b c d
 		foreach n of local rounds {
-			gen annuJ1_round`n' = inlist(pen2_round`n', 1, 2, 3, 4, 11, 22, 33, 44) if !mi(pen2indicator)
+			gen annuJ2_round`n' = inlist(pen2_round`n', 1, 2, 3, 4, 11, 22, 33, 44) if !mi(pen2indicator)
 		} 
 
 		
@@ -67,9 +67,12 @@ pensions in each round that have been converted to annuities ( dont care what ty
 			else if `i' == 4 {
 				egen `pnstat' = anymatch(LJw097m1`n' LJw097m2`n'), v(4)
 				}
-			replace annuJ2_round`n' = 0  if annuJ1_round`n' == 1 & `pnstat' != 1 /* set to 0 if pension was NOT turned into annuity (so only annuity pensions survive)*/
+			replace annuJ2_round`n' = 0  if annuJ2_round`n' == 1 & `pnstat' != 1 /* set to 0 if pension was NOT turned into annuity (so only annuity pensions survive)*/
 			local i = `i' + 1
 			}
+
+			cap drop __00000*
+
 
 	* add 'em up:
 

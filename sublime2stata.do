@@ -1,7 +1,13 @@
-clear
-use $trackerAH 
 
-** many to 1 merge on hhid, Lsubhh, pn, tracker to assetfile 
-cap drop _merge
-merge 1:m hhid Lsubhh pn using $track_asset08_AH, update replace
+do "$dofile_repository/mergeQtoMaster.do"
 
+
+* frequencies of Assets, annuities, from Q and J file:
+
+
+tab IRA_Q, m
+tab annu1_Q, m
+tab annu2_Q, m
+
+tab annuJ1_total, m
+tab annuJ2_total, m
