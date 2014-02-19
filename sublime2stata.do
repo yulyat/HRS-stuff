@@ -1,7 +1,9 @@
+clear
+use $track_preload_J08Working
 
-tab IRA_Q, m
-tab annuQ1_Q, m
-tab annuQ2_Q, m
+** many to 1 merge on hhid, Lsubhh, pn, Jfile to assetfile 
+cap drop _merge
+cap drop Ksubhh
+cap drop lvdate lversion
+merge m:1 hhid Lsubhh  using $asset08_AHWorking, update replace
 
-tab annuJ1_total, m
-tab annuJ2_total, m
