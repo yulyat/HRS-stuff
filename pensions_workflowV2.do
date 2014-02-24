@@ -51,7 +51,7 @@ set more off
 do
 */
 
-do "$dofile_repository/pensions_1V1.do"
+do "$dofile_repository/pensions_1V2.do"
 
 /* 2nd dofile PEnsions2.do: creates all the variables relevant for accounting for pensions and types
 	note naming system: 
@@ -64,7 +64,7 @@ do "$dofile_repository/pensions_1V1.do"
 
 */
 
-do "$dofile_repository/pensions_2v.do"
+do "$dofile_repository/pensions_2V2.do"
 
 
   *******

@@ -434,7 +434,7 @@ use "$track_preload_J08Working"
 gen insample=0
 replace insample=1 if _intrk08==1
 replace insample=0 if _intrk08==1 & (Lage>72 | comb0608==. | (pen4indicator==. & oldNH!=1) | (pen2indicator==. & (comb0608==2 | comb0608==3 | comb0608==4 | comb0608==6 | comb0608==7)) | (pen3indicator==. & (comb0608==1 | comb0608==2 | comb0608==9)) | pen2==-1 | pen3==-1 | pen4==-1)
-
+replace insample=0 if (LZ076 == 0 | LZ076 == 5)
 
 * how many pension blocks :
 

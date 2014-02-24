@@ -143,7 +143,7 @@ foreach asset of local havefinassets{
 	cap drop penincome_have 
 	gen penincome_have = LQ215
 	replace penincome_have = 0 if LQ215 == 5
-	replace penincome_have = -1 if  (LQ215) == 8 |(LQ215) == 9)
+	replace penincome_have = -1 if  ((LQ215) == 8 |(LQ215) == 9)
 
 
 cap drop  penincome_self penincome_partner

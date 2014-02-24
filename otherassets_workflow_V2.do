@@ -61,16 +61,16 @@ global trackerAH `"$d_root/trackerAH.dta"'
 set more off
 
 * 1st do file: count IRAs and annuities in household level Q file
-do "$dofile_repository/annuitiesQAssetsQ_v.do"
+do "$dofile_repository/annuitiesQAssetsQ_V2.do"
 
 
 * 2nd do file: count annuities reporte din Jfile:
 
-do "$dofile_repository/annuitiesJ_v.do"
+do "$dofile_repository/annuitiesJ_V2.do"
 
 * merge Q file to master working file: ( this file also assigns self and partner annuities to correct household member)
 
-do "$dofile_repository/mergeQtoMaster_v.do"
+do "$dofile_repository/mergeQtoMaster_V2.do"
 
 * assign spouses working status 
 
@@ -107,30 +107,101 @@ foreach var of local fam{
    
 } */
 
+** summing up annuities
+egen annu_all = rowtotal(annuQ1_Q annuQ2_Q annuJ1_total annuJ2_total)
+replace annu_all=. if annuQ1_Q==. & annuQ2_Q==. & annuJ1_total==. & annuJ2_total==.
+replace insample=0 if insample==1 & (annu_all==. | IRA_Q==.)
+
+
+** generate account all type variable: annuities, IRAS, income from pensions 
+gen accountalltype=.
+replace accountalltype=-1 if insample==1
+replace accountalltype=0 if insample==1 & IRA_Q==0 & annu_all==0 & penincome_Q == 0
+replace accountalltype=1 if insample==1 & IRA_Q==1 & annu_all==0
+replace accountalltype=2 if insample==1 & IRA_Q>1 & annu_all==0
+replace accountalltype=3 if insample==1 & IRA_Q==0 & annu_all>0
+replace accountalltype=4 if insample==1 & IRA_Q>0 & annu_all>0
+replace accountalltype=5 if insample==1 & IRA_Q==0 & annu_all == 0 & penincome_Q > 0
+replace accountalltype=6 if insample==1 & IRA_Q==0 & annu_all == 0 & penincome_Q > 1
+replace accountalltype=7 if insample==1 & IRA_Q>0 & penincome_Q > 0
+replace accountalltype=8 if insample==1 & annu_all >0 & penincome_Q > 0
+replace accountalltype=9 if insample==1 & IRA_Q>0 & annu_all>0 & penincome_Q>0
+
+
+
+#delimit ;
+cap label drop assettype;
+label define assettype
+ -1 "Not asked" 
+ 0 "No IRA, annuity, pen income" 
+ 1 "One IRA reported" 
+ 2 "More than one IRA reported" 
+ 3 "Only annuity reported"	
+ 4 "IRAs and anuity reported"
+ 5 "only pen income reported"
+ 6 "multipe pension income"
+ 7 " IRA and pension income"
+ 8 "annuity and pension income"
+ 9 "IRA & annuity & penincome";
+label value accountalltype assettype;
+#delimit ;
+
+
+* working not retired into 3 ages: 55-59, 60-64, 65-69:
+cap drop worknr3
+gen worknr3 = . 
+replace worknr3 = 1 if jstatus08 == 3 & Lage6 == 3
+replace worknr3 = 2 if jstatus08 == 3 & Lage6 == 4
+replace worknr3 = 3 if jstatus08 == 3 & Lage6 == 5
+
+cap label drop worknr3
+label define worknr3 1 "55-59" 2 "60-64" 3 "65-69"
+label values worknr3 worknr3
+label variable worknr3 "working not retired by age"
+
+
+
+
 * frequencies of Assets, annuities, from Q and J file:
 
 tab Lage6 if _intrk08==1,m
 tab Lage6 if insample==1,m
 tab jstatus08 if insample==1,m
 tab Lage6 jstatus08 if insample==1,m
+tab worknr3 if insample ==1, m  
+
 tab numpenblocks if insample==1,m
 tab numpenblocks jstatus08 if insample==1,m
+
 tab pensionactiveA if insample==1,m
 tab pensionactiveA jstatus08 if insample==1,m
+tab pensionactiveA worknr3 if insample==1,m
+
 tab pensionactiveB if insample==1,m
 tab pensionactiveB jstatus08 if insample==1,m
+tab pensionactiveB worknr3 if insample==1,m
+
 tab pensionactiveAB if insample==1,m
 tab pensionactiveDK if insample==1,m
 tab pensionactiveA1 jstatus08 if insample==1,m
 tab pensionactiveB1 jstatus08 if insample==1,m
+
 tab pensionalltype if insample==1,m
 tab pensionalltype jstatus08 if insample==1,m
+tab pensionalltype worknr3 if insample==1,m
+
 tab IRA_Q if insample==1,m
 tab IRA_Q jstatus08 if insample==1,m
+tab IRA_Q worknr3 if insample==1,m
+
 tab annu_all if insample==1,m
 tab annu_all jstatus08 if insample==1,m
+tab annu_all worknr3 if insample==1,m
+
 tab accountalltype if insample==1,m
 tab accountalltype jstatus08 if insample==1,m
-tab accountalltype pensionalltype if insample==1,m
+tab accountalltype worknr3 if insample==1,m
+
+tab pensionalltype if insample==1,m
 tab accountalltype pensionalltype if insample==1 & working08==1,m
 tab accountalltype pensionalltype if insample==1 & retired08==1,m
