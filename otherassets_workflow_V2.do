@@ -114,6 +114,7 @@ replace insample=0 if insample==1 & (annu_all==. | IRA_Q==.)
 
 
 ** generate account all type variable: annuities, IRAS, income from pensions 
+cap drop accountalltype
 gen accountalltype=.
 replace accountalltype=-1 if insample==1
 replace accountalltype=0 if insample==1 & IRA_Q==0 & annu_all==0 & penincome_Q == 0
@@ -123,9 +124,7 @@ replace accountalltype=3 if insample==1 & IRA_Q==0 & annu_all>0
 replace accountalltype=4 if insample==1 & IRA_Q>0 & annu_all>0
 replace accountalltype=5 if insample==1 & IRA_Q==0 & annu_all == 0 & penincome_Q > 0
 replace accountalltype=6 if insample==1 & IRA_Q==0 & annu_all == 0 & penincome_Q > 1
-replace accountalltype=7 if insample==1 & IRA_Q>0 & penincome_Q > 0
-replace accountalltype=8 if insample==1 & annu_all >0 & penincome_Q > 0
-replace accountalltype=9 if insample==1 & IRA_Q>0 & annu_all>0 & penincome_Q>0
+replace accountalltype=7 if insample==1 & (penincome_Q > 0 & (annu_all>0| IRA_Q>0) |(IRA_Q>0 & annu_all>0))
 
 
 
@@ -140,9 +139,7 @@ label define assettype
  4 "IRAs and anuity reported"
  5 "only pen income reported"
  6 "multipe pension income"
- 7 " IRA and pension income"
- 8 "annuity and pension income"
- 9 "IRA & annuity & penincome";
+ 7 "Pen income + IRA &/or annuity";
 label value accountalltype assettype;
 #delimit ;
 
@@ -161,6 +158,30 @@ label variable worknr3 "working not retired by age"
 
 
 
+
+** creating sample weights to match addhealth parent study distribution
+cap drop n_type
+gen n_type = .
+forvalues n = 1/6 {
+	egen freq`n' = count(Lage6) if Lage6 == `n' & insample == 1
+	replace n_type = freq`n' if Lage6 == `n' & insample == 1
+}
+tab n_type
+
+
+	** distribution in addhealth parent:
+gen N_type = .
+replace N_type = 27 if Lage6 == 1 & insample == 1 
+replace N_type = 527 if Lage6 == 2 & insample == 1
+replace N_type = 2992 if Lage6 == 3 & insample == 1
+replace N_type = 4323 if Lage6 == 4 & insample == 1
+replace N_type = 3504 if Lage6 == 5 & insample == 1
+replace N_type = 1991 if Lage6 == 6 & insample == 1
+
+cap drop weight
+gen weight = round(N_type/n_type, .1) if insample == 1
+
+tab Lage6 if insample == 1 [aw=weight]
 
 * frequencies of Assets, annuities, from Q and J file:
 
