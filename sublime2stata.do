@@ -1,4 +1,2 @@
-cap drop weight
-gen weight = round(N_type/n_type, .1) if insample == 1
+table Lage6 if insample == 1 [aw=weight] , c(mean freq) format(%2.0f)
 
-tab Lage6 if insample == 1 [aw=weight]

@@ -67,10 +67,7 @@ do "$dofile_repository/pensions_1V2.do"
 do "$dofile_repository/pensions_2V2.do"
 
 
-  *******
-  *Tables
-  *******
-  
+ 
   /*variables used in this file
   */
 

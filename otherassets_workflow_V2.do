@@ -37,6 +37,7 @@ global asset08full `"$d_root\asset08full.dta"'
 
 * Yulya set up
 global dofile_repository `"/Users/truskinovsky/Documents/ADDhealth_HRS/HRS_stuff"'
+global log `"/Users/truskinovsky/Documents/ADDhealth_HRS/log`c(current_date)'"'
 
 * master data created in pensions_workflow.do
 global track_preload_J08Working `"/Users/truskinovsky/Documents/Amar/data/track_preload_J08Working.dta"'
@@ -124,7 +125,7 @@ replace accountalltype=3 if insample==1 & IRA_Q==0 & annu_all>0
 replace accountalltype=4 if insample==1 & IRA_Q>0 & annu_all>0
 replace accountalltype=5 if insample==1 & IRA_Q==0 & annu_all == 0 & penincome_Q > 0
 replace accountalltype=6 if insample==1 & IRA_Q==0 & annu_all == 0 & penincome_Q > 1
-replace accountalltype=7 if insample==1 & (penincome_Q > 0 & (annu_all>0| IRA_Q>0) |(IRA_Q>0 & annu_all>0))
+replace accountalltype=7 if insample==1 & (penincome_Q > 0 & (annu_all==0| IRA_Q>0) |(IRA_Q==0 & annu_all>0))
 
 
 
@@ -179,9 +180,28 @@ replace N_type = 3504 if Lage6 == 5 & insample == 1
 replace N_type = 1991 if Lage6 == 6 & insample == 1
 
 cap drop weight
-gen weight = round(N_type/n_type, .1) if insample == 1
+gen weight = N_type/n_type if insample == 1
 
-tab Lage6 if insample == 1 [aw=weight]
+
+
+table Lage6 if insample == 1 [pw=weight]
+
+table Lage6  if insample == 1 [pw=weight], c(freq) format(%2.0f)
+
+capture log close
+log using "$log", replace
+set more off
+
+local test Lage6 jstatus08 worknr3 numpenblocks pensionalltype accountalltype 
+foreach var of local test {
+	di "unweighted `var' table"
+	table `var' if insample == 1, c(freq) format(%2.0f)
+	di "weighted `var' table"
+	table `var'  if insample == 1 [pw=weight], c(freq) format(%2.0f)
+}
+
+log close
+
 
 * frequencies of Assets, annuities, from Q and J file:
 
@@ -226,3 +246,7 @@ tab accountalltype worknr3 if insample==1,m
 tab pensionalltype if insample==1,m
 tab accountalltype pensionalltype if insample==1 & working08==1,m
 tab accountalltype pensionalltype if insample==1 & retired08==1,m
+tab accountalltype pensionalltype if insample==1 & working08==1,m
+tab accountalltype pensionalltype if insample==1 & worknr3==1,m
+tab accountalltype pensionalltype if insample==1 & worknr3==2,m
+tab accountalltype pensionalltype if insample==1 & worknr4==3,m
