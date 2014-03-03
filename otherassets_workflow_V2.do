@@ -184,9 +184,11 @@ gen weight = N_type/n_type if insample == 1
 
 
 
-table Lage6 if insample == 1 [pw=weight]
+tab Lage6 if insample == 1 [aw=weight]
 
 table Lage6  if insample == 1 [pw=weight], c(freq) format(%2.0f)
+
+
 
 capture log close
 log using "$log", replace
@@ -195,55 +197,123 @@ set more off
 local test Lage6 jstatus08 worknr3 numpenblocks pensionalltype accountalltype 
 foreach var of local test {
 	di "unweighted `var' table"
-	table `var' if insample == 1, c(freq) format(%2.0f)
+	tablecol `var' if insample == 1, c(freq) colpct format(%2.0f) center row col 
 	di "weighted `var' table"
-	table `var'  if insample == 1 [pw=weight], c(freq) format(%2.0f)
+	tablecol `var'  if insample == 1 [pw=weight],  colpct c(freq) format(%2.0f) center row col
 }
 
 log close
+
+	table Lage6  if insample == 1, c(freq) format(%2.0f) 
+
+
+	table  Lage6 if insample ==1  [pw=weight], row m
+ 
+ esttab, cells("b(label(freq)) pct(fmt(2)) cumpct(fmt(2))") ///
+  varlabels(, blist(Total "{hline @width}{break}"))      ///   
+  nonumber nomtitle noobs
 
 
 * frequencies of Assets, annuities, from Q and J file:
 
 tab Lage6 if _intrk08==1,m
 tab Lage6 if insample==1,m
+table Lage6 if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab jstatus08 if insample==1,m
+table jstatus08  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab Lage6 jstatus08 if insample==1,m
-tab worknr3 if insample ==1, m  
+table Lage6 jstatus08  if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+
+tab worknr3 if insample ==1
+table worknr3  if insample == 1 [pw=weight], c(freq) format(%2.0f) row 
+
 
 tab numpenblocks if insample==1,m
+table numpenblocks  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
 tab numpenblocks jstatus08 if insample==1,m
+table numpenblocks jstatus08  if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+
 
 tab pensionactiveA if insample==1,m
+table pensionactiveA  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
+
 tab pensionactiveA jstatus08 if insample==1,m
-tab pensionactiveA worknr3 if insample==1,m
+table pensionactiveA jstatus08  if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+tab pensionactiveA worknr3 if insample==1
+table pensionactiveA worknr3  if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
 
 tab pensionactiveB if insample==1,m
+table pensionactiveB  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
+
 tab pensionactiveB jstatus08 if insample==1,m
+table pensionactiveB jstatus08 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
 tab pensionactiveB worknr3 if insample==1,m
+table pensionactiveB worknr3  if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
 
 tab pensionactiveAB if insample==1,m
 tab pensionactiveDK if insample==1,m
+table pensionactiveAB  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+table pensionactiveDK  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
+
 tab pensionactiveA1 jstatus08 if insample==1,m
 tab pensionactiveB1 jstatus08 if insample==1,m
+table pensionactiveA1 jstatus08 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+table pensionactiveB1 jstatus08 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+
 
 tab pensionalltype if insample==1,m
+table pensionalltype  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab pensionalltype jstatus08 if insample==1,m
-tab pensionalltype worknr3 if insample==1,m
+table pensionalltype jstatus08 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+tab pensionalltype worknr3 if insample==1
+table pensionalltype worknr3 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
 
 tab IRA_Q if insample==1,m
+table IRA_Q  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab IRA_Q jstatus08 if insample==1,m
-tab IRA_Q worknr3 if insample==1,m
+table IRA_Q jstatus08 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+tab IRA_Q worknr3 if insample==1
+table IRA_Q worknr3 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
 
 tab annu_all if insample==1,m
+table annu_all  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab annu_all jstatus08 if insample==1,m
-tab annu_all worknr3 if insample==1,m
+table annu_all jstatus08  if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+tab annu_all worknr3 if insample==1
+table annu_all worknr3 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
 
 tab accountalltype if insample==1,m
+table accountalltype  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab accountalltype jstatus08 if insample==1,m
-tab accountalltype worknr3 if insample==1,m
+table accountalltype jstatus08 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+tab accountalltype worknr3 if insample==1
+table accountalltype worknr3 if insample == 1 [pw=weight], c(freq) format(%2.0f) row col m 
+
+
 
 tab pensionalltype if insample==1,m
+table pensionalltype  if insample == 1 [pw=weight], c(freq) format(%2.0f) row m 
+
 tab accountalltype pensionalltype if insample==1 & working08==1,m
 tab accountalltype pensionalltype if insample==1 & retired08==1,m
 tab accountalltype pensionalltype if insample==1 & working08==1,m
