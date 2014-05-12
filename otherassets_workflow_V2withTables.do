@@ -29,14 +29,14 @@ global asset08_AHWorking `"$d_root\asset08AHWorking.dta"'
 
 
 /* note extra level of folders */
-global asset08full `"$d_root\asset08full.dta"' 
+global asset08full `"$d_root\track_HH08.dta"' 
 global log `"C:\Users\vvs3\Desktop\Work\SethMeeting\NewY\programs\logpin`c(current_date)'"'
 *global HHcover08  `"$d_root\HHcover08.dta"'
 
 *global trackerAH `"$d_root\trackerAH.dta"'
 */
 
-/* Yulya set up
+* Yulya set up
 global dofile_repository `"/Users/truskinovsky/Documents/ADDhealth_HRS/HRS_stuff"'
 global log `"/Users/truskinovsky/Documents/ADDhealth_HRS/log`c(current_date)'"'
 
@@ -49,11 +49,11 @@ global track_preload_J08Working `"/Users/truskinovsky/Documents/Amar/data/track_
 global d_root `"/Users/truskinovsky/Documents/Amar/data"'
 
 global track_asset08_AH `"$d_root/trackasset08AH.dta"'
-global asset08_AHWorking `"$d_root/asset08AHWorking.dta"' */
+global asset08_AHWorking `"$d_root/asset08AHWorking.dta"' 
 
 
-/* note extra level of folders 
-global asset08full `"$d_root/08/asset08full.dta"' 
+* note extra level of folders 
+global asset08full `"$d_root/track_HH08.dta"' 
 global HHcover08  `"$d_root/08/HHcover08.dta"'
 
 global trackerAH `"$d_root/trackerAH.dta"'
