@@ -1,0 +1,115 @@
+* data location macros:
+* do file repository:
+
+/* Vladi set up
+use "C:\Users\vvs3\Desktop\Work\SethMeeting\NewY\Data\track_preload_J08.dta"
+global track_preload_J08 `"C:\Users\vvs3\Desktop\Work\SethMeeting\NewY\Data\track_preload_J08.dta"'
+global track_preload_J08Working `"C:\Users\vvs3\Desktop\Work\SethMeeting\NewY\Data\track_preload_J08Working.dta"'
+
+global dofile_repository `"C:\Users\vvs3\Desktop\Work\SethMeeting\NewY\programs"'
+
+clear 
+use $track_preload_J08Working
+*save "$track_preload_J08Working", replace
+
+
+* files needed for this workflow:
+
+global d_root `"C:\Users\vvs3\Desktop\Work\SethMeeting\NewY\Data"'
+
+global track_asset08_AH `"$d_root\trackasset08AH.dta"'
+global asset08_AHWorking `"$d_root\asset08AHWorking.dta"'
+
+
+/* note extra level of folders */
+global asset08full `"$d_root\asset08full.dta"' 
+*global HHcover08  `"$d_root\HHcover08.dta"'
+
+*global trackerAH `"$d_root\trackerAH.dta"'
+*/
+
+* Yulya set up
+global dofile_repository `"/Users/truskinovsky/Documents/ADDhealth_HRS/HRS_stuff"'
+global log `"/Users/truskinovsky/Documents/ADDhealth_HRS/log`c(current_date)'"'
+
+* master data created in pensions_workflow.do
+*global track_preload_J08Working `"/Users/truskinovsky/Documents/Amar/data/track_preload_J08Working.dta"'
+
+
+* files needed for this workflow:
+
+global d_root `"/Users/truskinovsky/Documents/Amar/data"'
+
+global track_asset08_AH `"$d_root/trackasset08AH.dta"'
+global track_asset08_AHWorking `"$d_root/trackasset08AHWorking.dta"'
+
+
+/* note extra level of folders */
+global asset08full `"$d_root/08/asset08full.dta"' 
+global HHcover08  `"$d_root/08/HHcover08.dta"'
+
+global trackerAH `"$d_root/trackerAH.dta"'
+*/
+
+
+set more off
+clear 
+use $asset08full
+
+set more off
+
+
+
+
+** variable we are going to use: 
+* LQ134, LQ148, LQ143, LQ157
+
+local assets LQ134
+
+foreach var of local assets {
+
+
+
+	
+}
+
+sum  LQ134 if !mi(LQ134) & LQ134 > 0, d  
+local one r(25)
+local two r(50)
+local three r(75)
+
+hist  LQ134  if (LQ134 <  9999999) & !mi(LQ134),  bin(50) percent ysc(r(1 10))
+
+
+gen lLQ134 = log(LQ134)
+
+hist  LQ134  if (LQ134 <  9999999) & !mi(LQ134),  bin(50) percent ysc(r(1 10))
+
+hist  lLQ134 if (LQ134 <  9999999),  bin(50) percent ysc(r(1 10))
+hist  LQ148 if !mi(LQ148) & LQ148 > 0,  bin(50) percent ysc(r(1 10))
+hist  LQ134 if !mi(LQ134) & LQ134 > 0,  bin(50) percent ysc(r(1 10))
+
+
+
+r(p1)          1st percentile (detail only)
+      r(p5)          5th percentile (detail only)
+      r(p10)         10th percentile (detail only)
+      r(p25)         25th percentile (detail only)
+      r(p50)         50th percentile (detail only)
+      r(p75)         75th percentile (detail only)
+      r(p90)         90th percentile (detail only)
+      r(p95)         95th percentile (detail only)
+      r(p99)         99th percentile (detail only)
+
+#delimit ;
+histogram proximity, bcolor(ltblue) width(0.025) start(0) freq
+addplot(histogram proximity if proximity>0.4, bcolor(yellow) width(0.025) start(0) freq ||
+histogram proximity if proximity>0.55, bcolor(blue) width(0.025) start(0) freq ||
+histogram proximity if proximity>0.65, bcolor(red) width(0.025) start(0) freq)
+ytitle(“Number of Links”)
+ylabel(0(10000)30000, format(%8.0gc) angle(0))
+xlabel(0.20 0.40 0.55 0.65 0.85)
+xtitle(“Proximity”)
+note(“Note: The total number of links for the 779 products is (779×778)/2=303,031.”)
+legend(off)
+;
